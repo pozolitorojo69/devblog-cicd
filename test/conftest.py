@@ -10,9 +10,10 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
 from app import create_app
+from app.models import blog_storage
 
 
-# Fixture requerida por pytest-flask
+# Fixture requerido por pytest-flask
 @pytest.fixture
 def app():
     app = create_app()
@@ -21,7 +22,15 @@ def app():
     return app
 
 
-# Fixture que levanta Flask para las pruebas E2E
+# Reinicia el almacenamiento antes de cada prueba
+@pytest.fixture(autouse=True)
+def reset_blog_storage():
+    blog_storage._posts.clear()
+    blog_storage._next_id = 1
+    blog_storage._create_sample_posts()
+
+
+# Inicia Flask para las pruebas E2E
 @pytest.fixture(scope="session")
 def flask_test_app():
     app = create_app()
@@ -43,7 +52,7 @@ def flask_test_app():
     yield app
 
 
-# Fixture de Selenium
+# Driver de Selenium
 @pytest.fixture
 def selenium_driver():
     chrome_options = Options()
@@ -61,7 +70,7 @@ def selenium_driver():
     driver.quit()
 
 
-# URL base para pruebas E2E
+# URL base para las pruebas E2E
 @pytest.fixture
 def e2e_base_url():
     return "http://127.0.0.1:5001"
